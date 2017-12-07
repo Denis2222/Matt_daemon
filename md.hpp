@@ -10,10 +10,26 @@
 #include <arpa/inet.h>
 
 #define PORT 4242
+#define MAX_CLIENT 3
 
-typedef struct			s_sin_sock
+typedef struct			s_sinsock
 {
 	int					csock;
 	struct sockaddr_in	csin;
 	socklen_t			csinsize;
-}						t_sin_sock;
+	pthread_mutex_t		*mutex;
+	pthread_t			thread;
+}						t_sinsock;
+
+typedef struct			s_env
+{
+	int					sock; //Server
+	int					exit;
+	struct sockaddr_in	sin;
+
+	//Unsafe
+	int					connected;
+	pthread_mutex_t		*mutex;
+
+	t_sinsock			client[MAX_CLIENT];
+}						t_env;
