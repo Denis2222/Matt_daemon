@@ -14,13 +14,25 @@ void *thread_client(void *sin_sock)
 {
 	t_sin_sock	*tss;
 	int			run;
+	int			ret;
 
 	run = 1;
 	tss = (t_sin_sock*)sin_sock;
+	char *buf;
+
+	buf = (char *)malloc(100);
+	bzero(buf, 100);
 	while (run)
 	{
-		sleep(2);
-		std::cout << "I sleep for client call !" << tss->csock  << std::endl;
+		ret = read(tss->csock, (void *)buf, 100);
+		if (ret == 0)
+		{
+			std::cout << "Disconnect ! " << tss->csock  << std::endl;
+			return (0);
+		}
+		buf[ret] = '\0';
+		std::cout << "Incoming message : " << buf << std::endl;
+		bzero(buf, 100);
 	}
 	close(tss->csock);
 	free(tss);
