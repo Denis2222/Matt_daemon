@@ -3,7 +3,7 @@ SRC		=	main.cpp \
 			Tintin_reporter.cpp
 
 OBJ			= $(SRC:.cpp=.o)
-CC			= clang++ -Wall -Wextra -Werror
+CC			= clang++ -Wall -Wextra -Werror -lpthread
 
 $(NAME): $(OBJ)
 	$(CC) $(OBJ) -o $(NAME)
