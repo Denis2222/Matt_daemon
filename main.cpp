@@ -5,6 +5,31 @@
 #include <sys/socket.h>
 #include <stdlib.h>
 
+int	islock()
+{
+	if( access( LOCK_PATH, F_OK ) != -1 ) {
+		return (1);
+	} else {
+		return (0);
+	}
+}
+
+void lock()
+{
+	int fd;
+	fd = open(LOCK_PATH, O_RDWR|O_CREAT, 0777);
+	if (fd != -1)
+		close(fd);
+}
+
+void unlock()
+{
+	if (unlink(LOCK_PATH) != 0)
+	{
+		perror("unlink()");
+	}
+}
+
 void	mySignal( int sig )
 {
 	printf("Signal SIGKILL");
@@ -34,20 +59,28 @@ void *thread_client(void *sin_sock)
 		ret = read(tss->csock, (void *)buf, 100);
 		if (ret == 0)
 		{
+			tss->env->report.Logstd("User disconnect !", INFO);
 			run = 0;
 			break;
 		}
-		buf[ret] = '\0';
-		std::cout << "Incoming message : " << buf << std::endl;
-		if (strncmp(buf, "deco", 4) == 0)
+		if (ret > 0)
 		{
-			run = 0;
-			break;
+			buf[ret - 1] = '\0';
+			if (strncmp(buf, "quit", 4) == 0)
+			{
+				tss->env->report.Logstd("Quit ask ! Exit now !", INFO);
+				pthread_mutex_lock(&tss->env->mutex);
+				tss->env->exit = 0;
+				close(tss->env->sock);
+				pthread_mutex_unlock(&tss->env->mutex);
+				run = 0;
+				break;
+			}
 		}
+		tss->env->report.Log(buf, LOG);
 		bzero(buf, 100);
 	}
 	
-	std::cout << "Disconnect ! " << tss->csock  << std::endl;
 	pthread_mutex_lock(&tss->env->mutex);
 	tss->env->connected--;
 	tss->env->connect[tss->nb] = 0;
@@ -60,18 +93,17 @@ void *thread_client(void *sin_sock)
 
 int main2(int argc, char **argv)
 {
-/*	
-	std::cout << "Start main" << std::endl;
-	std::string toto = "Yoloooo";
-	Tintin_reporter report(toto);
-	report.Hello();
-*/
-	printf("Start !\n");
-
 	t_env	e;
 	pthread_t	thread[3];
 	e.connected = 0;
 	e.exit = 1;
+	e.report.Logstd("Started", INFO);
+	if (islock())
+	{
+		
+		e.report.Logstd("Already Start .lock exist", ERROR);
+		return (0);
+	}
 	e.sock = socket(AF_INET, SOCK_STREAM, 0);
 	e.connect[0] = 0;
 	e.connect[1] = 0;
@@ -85,10 +117,10 @@ int main2(int argc, char **argv)
 	e.sin.sin_addr.s_addr = htonl(INADDR_ANY);
 	e.sin.sin_family = AF_INET;
 	e.sin.sin_port = htons(PORT);
-	printf("Bind !");
 	if (bind(e.sock, (struct sockaddr *)&e.sin, sizeof(e.sin)) == -1)
 	{
-		perror("bind()");
+		e.report.Logstd("Port already in use !", ERROR);
+		unlock();
 		return (1);
 	}
 	if (listen(e.sock, 5) == -1)
@@ -96,22 +128,26 @@ int main2(int argc, char **argv)
 		perror("listen()");
 		return (1);
 	}
+	lock();
+	e.report.Logstd("Daemon Ready !", INFO);
 	while (e.exit)
 	{
-		printf("Wait for connection ! connected : %d\n", e.connected);
 		t_sinsock *tss;
 		tss = (t_sinsock*)malloc(sizeof(t_sinsock));
 		tss->csinsize = sizeof(tss->csin);
 		tss->csock = accept(e.sock, (struct sockaddr*)&tss->csin, &tss->csinsize);
 		if (tss->csock == -1)
 		{
-			perror("accept()");
-			return (1);
+			break;
 		}
 		else
 		{
 			tss->env = &e;
-			std::cout << "New connection !" << tss->csock << std::endl;
+
+			std::string newcon("Connection detected ! FROM : ");
+			newcon.append(inet_ntoa(tss->csin.sin_addr));
+			e.report.Logstd(newcon , INFO);
+
 				int can;
 				int i;
 				
@@ -129,7 +165,7 @@ int main2(int argc, char **argv)
 				}
 				if (!can)
 				{
-					printf("Max connected ! reject ");
+					e.report.Logstd("Max connected ! reject ", INFO);
 					char str[]  = "Limit connection";
 					write(tss->csock, str, strlen(str));
 					close(tss->csock);
@@ -138,7 +174,8 @@ int main2(int argc, char **argv)
 		}
 	}
 	
-	printf("Exit program !\n");
+	e.report.Logstd(" Exit Program ", INFO);
+	unlock();
 	return (0);
 }
 
@@ -147,7 +184,6 @@ int	main(int argc, char **argv)
 //	pid_t pID = fork();
 //	if (pID == 0)
 	{
-		printf("Start main !\n");
 		return (main2(argc, argv));
 	}
 //	return (0);
