@@ -23,8 +23,11 @@
 
 #define PORT       4242
 #define MAX_CLIENT 3
-#define LOCK_PATH  "./matt_daemon.lock"
-#define LOG_PATH   "./matt_daemon.log"
+#define LOCK_PATH  "/var/lock/matt_daemon.lock"
+#define LOG_PATH   "/var/log/matt_daemon/matt_daemon.log"
+
+#define LOCK_PATH2  "./matt_daemon.lock"
+#define LOG_PATH2   "./matt_daemon.log"
 
 enum					e_logtype
 {
@@ -51,7 +54,6 @@ typedef struct			s_env
 	int					sock; //Server
 	int					exit;
 	struct sockaddr_in	sin;
-
 
 	Tintin_reporter		report;
 

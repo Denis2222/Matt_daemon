@@ -28,7 +28,7 @@ int main2(int argc, char **argv)
 	e.exit = 1;
 	e.report.Logstd("Started", INFO);
 
-	printf("pid:%d \n", getpid());
+//	printf("pid:%d \n", getpid());
 
 	sigemptyset( &act.sa_mask );
 	act.sa_flags = 0;
@@ -38,7 +38,6 @@ int main2(int argc, char **argv)
 	{
 		sigaction(u,  &act, 0);
 	}
-	
 
 	if (islock())
 	{
@@ -79,7 +78,7 @@ int main2(int argc, char **argv)
 		tss = (t_sinsock*)malloc(sizeof(t_sinsock));
 		tss->csinsize = sizeof(tss->csin);
 		tss->csock = accept(e.sock, (struct sockaddr*)&tss->csin, &tss->csinsize);
-		printf("accept return bitch\n");
+//		printf("accept return bitch\n");
 		if (tss->csock < 0)
 		{
 			if (errno == EINTR)
@@ -128,10 +127,19 @@ int main2(int argc, char **argv)
 
 int	main(int argc, char **argv)
 {
-	pid_t pID = fork();
-	if (pID == 0)
+//	pid_t pID = fork();
+//	if (pID == 0)
 	{
-		return (main2(argc, argv));
+		uid_t uid;
+
+		uid = getuid();
+		if (uid == 0)
+			return (main2(argc, argv));
+		else
+		{
+			printf("Launch with root !");
+//			return (0);
+		}
 	}
 	return (0);
 }
