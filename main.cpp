@@ -1,18 +1,16 @@
 #include <iostream>
 #include "md.hpp"
 #include "Tintin_reporter.hpp"
-#include <iostream>
-
+#include <sstream>
 t_env *ge;
 
 void sighandler(int signo)
 {
 	printf("[%d] \n", signo);
-	std::string log;
-	log.append("Signal Catch : ");
-	log += std::to_string(signo);
-	log+= " yolo ";
-	ge->report.Logstd(log, INFO);
+	std::stringstream ss;
+	ss << "Signal Catch : [" << signo << "]";
+	
+	ge->report.Logstd(ss.str(), INFO);
 	if (signo == SIGTERM || signo == SIGINT)
 	{
 		//done = 1;

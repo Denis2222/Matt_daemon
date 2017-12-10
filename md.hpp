@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <sys/file.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -15,8 +16,10 @@
 
 #include <signal.h> // sigaction(), sigsuspend(), sig*()
 #include <pthread.h>
-
-
+#include <errno.h>
+#include <string.h>
+#include <string>
+#include <sstream>
 
 #define PORT       4242
 #define MAX_CLIENT 3
