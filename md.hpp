@@ -3,6 +3,7 @@
 #include <signal.h>
 #include <sys/wait.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -12,7 +13,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-
+#include <signal.h> // sigaction(), sigsuspend(), sig*()
 #include <pthread.h>
 
 
@@ -59,3 +60,8 @@ typedef struct			s_env
 	t_sinsock			client[MAX_CLIENT];
 }						t_env;
 
+int						islock();
+void					lock();
+void					unlock();
+
+void *thread_client(void *sin_sock);

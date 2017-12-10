@@ -1,109 +1,53 @@
 #include <iostream>
 #include "md.hpp"
 #include "Tintin_reporter.hpp"
+#include <iostream>
 
-#include <sys/socket.h>
-#include <stdlib.h>
+t_env *ge;
 
-int	islock()
+void sighandler(int signo)
 {
-	if( access( LOCK_PATH, F_OK ) != -1 ) {
-		return (1);
-	} else {
-		return (0);
-	}
-}
-
-void lock()
-{
-	int fd;
-	fd = open(LOCK_PATH, O_RDWR|O_CREAT, 0777);
-	if (fd != -1)
-		close(fd);
-}
-
-void unlock()
-{
-	if (unlink(LOCK_PATH) != 0)
+	printf("[%d] \n", signo);
+	std::string log;
+	log.append("Signal Catch : ");
+	log += std::to_string(signo);
+	log+= " yolo ";
+	ge->report.Logstd(log, INFO);
+	if (signo == SIGTERM || signo == SIGINT)
 	{
-		perror("unlink()");
+		//done = 1;
 	}
-}
-
-void	mySignal( int sig )
-{
-	printf("Signal SIGKILL");
-}
-
-
-void *thread_client(void *sin_sock)
-{
-	t_sinsock	*tss;
-	int			run;
-	int			ret;
-
-	run = 1;
-	tss = (t_sinsock*)sin_sock;
-	char *buf;
-
-	pthread_mutex_lock(&tss->env->mutex);
-	tss->env->connected++;
-	tss->env->connect[tss->nb] = 1;
-	pthread_mutex_unlock(&tss->env->mutex);
-
-
-	buf = (char *)malloc(100);
-	bzero(buf, 100);
-	while (run)
-	{
-		ret = read(tss->csock, (void *)buf, 100);
-		if (ret == 0)
-		{
-			tss->env->report.Logstd("User disconnect !", INFO);
-			run = 0;
-			break;
-		}
-		if (ret > 0)
-		{
-			buf[ret - 1] = '\0';
-			if (strncmp(buf, "quit", 4) == 0)
-			{
-				tss->env->report.Logstd("Quit ask ! Exit now !", INFO);
-				pthread_mutex_lock(&tss->env->mutex);
-				tss->env->exit = 0;
-				close(tss->env->sock);
-				pthread_mutex_unlock(&tss->env->mutex);
-				run = 0;
-				break;
-			}
-		}
-		tss->env->report.Log(buf, LOG);
-		bzero(buf, 100);
-	}
-	
-	pthread_mutex_lock(&tss->env->mutex);
-	tss->env->connected--;
-	tss->env->connect[tss->nb] = 0;
-	pthread_mutex_unlock(&tss->env->mutex);
-
-	close(tss->csock);
-	free(tss);
-	return (NULL);
 }
 
 int main2(int argc, char **argv)
 {
-	t_env	e;
+	t_env		e;
+	struct		sigaction act;
 	pthread_t	thread[3];
+
+	ge = &e;
 	e.connected = 0;
 	e.exit = 1;
 	e.report.Logstd("Started", INFO);
+
+	printf("pid:%d \n", getpid());
+
+	sigemptyset( &act.sa_mask );
+	act.sa_flags = 0;
+	act.sa_handler = sighandler;
+
+	for(int u = 0; u < 64; u++)
+	{
+		sigaction(u,  &act, 0);
+	}
+	
+
 	if (islock())
 	{
-		
 		e.report.Logstd("Already Start .lock exist", ERROR);
 		return (0);
 	}
+
 	e.sock = socket(AF_INET, SOCK_STREAM, 0);
 	e.connect[0] = 0;
 	e.connect[1] = 0;
@@ -120,7 +64,6 @@ int main2(int argc, char **argv)
 	if (bind(e.sock, (struct sockaddr *)&e.sin, sizeof(e.sin)) == -1)
 	{
 		e.report.Logstd("Port already in use !", ERROR);
-		unlock();
 		return (1);
 	}
 	if (listen(e.sock, 5) == -1)
@@ -132,13 +75,18 @@ int main2(int argc, char **argv)
 	e.report.Logstd("Daemon Ready !", INFO);
 	while (e.exit)
 	{
+		e.report.Logstd("While start ", INFO);
+
 		t_sinsock *tss;
 		tss = (t_sinsock*)malloc(sizeof(t_sinsock));
 		tss->csinsize = sizeof(tss->csin);
 		tss->csock = accept(e.sock, (struct sockaddr*)&tss->csin, &tss->csinsize);
-		if (tss->csock == -1)
+		printf("accept return bitch\n");
+		if (tss->csock < 0)
 		{
-			break;
+			if (errno == EINTR)
+				printf("Accept interrupt ! \n");
+			continue;
 		}
 		else
 		{
@@ -173,7 +121,8 @@ int main2(int argc, char **argv)
 				}
 		}
 	}
-	
+	close(e.sock);
+
 	e.report.Logstd(" Exit Program ", INFO);
 	unlock();
 	return (0);
@@ -181,10 +130,10 @@ int main2(int argc, char **argv)
 
 int	main(int argc, char **argv)
 {
-//	pid_t pID = fork();
-//	if (pID == 0)
+	pid_t pID = fork();
+	if (pID == 0)
 	{
 		return (main2(argc, argv));
 	}
-//	return (0);
+	return (0);
 }
