@@ -3,9 +3,12 @@
 
 Tintin_reporter::Tintin_reporter()
 {
-//	std::cout << "generate reporter !" << std::endl;
-	this->filename = "Tintin";
-//	std::cout << this->filename << std::endl;
+	this->filename = "";
+	struct stat st = {0};
+
+	if (stat(LOG_FOLDER, &st) == -1) {
+		mkdir(LOG_FOLDER, 0700);
+	}
 }
 
 Tintin_reporter::Tintin_reporter(const Tintin_reporter&reporter)
@@ -55,7 +58,6 @@ void Tintin_reporter::Logstd(std::string str, e_logtype type)
 			dprintf(fd, "%s %s User Input : %s\n", buffer,"[LOG]", str.c_str());
 		else
 			dprintf(fd, "%s %s %s\n", buffer,"[ERROR]", str.c_str());
-
 		close(fd);
 		flock(fd, LOCK_UN);
 	}

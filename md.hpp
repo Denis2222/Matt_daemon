@@ -10,6 +10,7 @@
 
 #include <sys/file.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -19,15 +20,17 @@
 #include <errno.h>
 #include <string.h>
 #include <string>
+#include <iostream>
 #include <sstream>
 
 #define PORT       4242
 #define MAX_CLIENT 3
 #define LOCK_PATH  "/var/lock/matt_daemon.lock"
 #define LOG_PATH   "/var/log/matt_daemon/matt_daemon.log"
+#define LOG_FOLDER "/var/log/matt_daemon/"
 
-#define LOCK_PATH2  "./matt_daemon.lock"
-#define LOG_PATH2   "./matt_daemon.log"
+//#define LOCK_PATH  "./matt_daemon.lock"
+//#define LOG_PATH   "./matt_daemon.log"
 
 enum					e_logtype
 {
@@ -65,8 +68,13 @@ typedef struct			s_env
 	t_sinsock			client[MAX_CLIENT];
 }						t_env;
 
-int						islock();
-void					lock();
-void					unlock();
+t_env *ge;
 
-void *thread_client(void *sin_sock);
+int		islock();
+void	lock();
+void	unlock();
+
+void	*thread_client(void *sin_sock);
+int		daemon(int argc, char **argv);
+void	sighandler(int signo);
+void	setup_signal();
