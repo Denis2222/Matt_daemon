@@ -6,7 +6,7 @@ int	main(int argc, char **argv)
 
 	if (pID == 0)
 	{
-		if (getuid() == 0)
+		if (getuid() == 0 || 1)
 			return (daemon(argc, argv));
 		else
 		{
