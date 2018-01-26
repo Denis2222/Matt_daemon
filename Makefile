@@ -2,6 +2,8 @@ NAME	= matt_daemon
 SRC		=	main.cpp \
 			lock.cpp \
 			thread.cpp \
+			daemon.cpp \
+			signal.cpp \
 			Tintin_reporter.cpp
 
 OBJ			= $(SRC:.cpp=.o)

@@ -68,7 +68,6 @@ typedef struct			s_env
 	t_sinsock			client[MAX_CLIENT];
 }						t_env;
 
-t_env *ge;
 
 int		islock();
 void	lock();
@@ -78,3 +77,6 @@ void	*thread_client(void *sin_sock);
 int		daemon(int argc, char **argv);
 void	sighandler(int signo);
 void	setup_signal();
+
+static t_env *ge;
+

@@ -1,10 +1,7 @@
 #include "md.hpp"
 
-//Return 0 => Probleme
-//Return 1 => All nice
 #define OK 1
 #define NOK 0
-
 
 int	setup_env(t_env *e)
 {
@@ -35,7 +32,7 @@ int	setup_env(t_env *e)
 	int optval = 1;
 	setsockopt(e->sock, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
 	pthread_mutex_init(&e->mutex, NULL);
-	
+
 	e->sin.sin_addr.s_addr = htonl(INADDR_ANY);
 	e->sin.sin_family = AF_INET;
 	e->sin.sin_port = htons(PORT);
@@ -86,7 +83,7 @@ int daemon(int argc, char **argv)
 		newcon.append(inet_ntoa(tss->csin.sin_addr));
 		e.report.Logstd(newcon , INFO);
 
-		int full;
+		int	full;
 
 		full = 1;
 		for(int i = 0; i < MAX_CLIENT; i++) {
