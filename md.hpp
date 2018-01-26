@@ -25,9 +25,9 @@
 
 #define PORT       4242
 #define MAX_CLIENT 3
-#define LOCK_PATH  "/var/lock/matt_daemon.lock"
-#define LOG_PATH   "/var/log/matt_daemon/matt_daemon.log"
-#define LOG_FOLDER "/var/log/matt_daemon/"
+#define LOCK_PATH  "./matt_daemon.lock"
+#define LOG_PATH   "./matt_daemon.log"
+#define LOG_FOLDER "./matt_daemon/"
 
 //#define LOCK_PATH  "./matt_daemon.lock"
 //#define LOG_PATH   "./matt_daemon.log"
