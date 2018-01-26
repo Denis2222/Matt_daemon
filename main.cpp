@@ -10,7 +10,7 @@ int	main(int argc, char **argv)
 			return (daemon(argc, argv));
 		else
 		{
-			printf("Not Root !");
+			printf("Not Root !\n");
 			return (0);
 		}
 	}
