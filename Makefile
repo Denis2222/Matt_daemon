@@ -1,4 +1,4 @@
-NAME	= matt_daemon
+NAME	= Matt_daemon
 SRC		=	main.cpp \
 			lock.cpp \
 			thread.cpp \

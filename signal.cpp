@@ -19,8 +19,7 @@ void sighandler(int signo)
 	ss << "Signal Catch : [" << signo << "]";
 	ge->report.Logstd(ss.str(), INFO);
 
-//	close(ge->sock);
-//	ge->report.Logstd(" Exit Program ", INFO);
-//	unlock();
-//	exit(0);
+	ge->report.Logstd(" Exit Program ", INFO);
+	unlock();
+	exit(0);	
 }
